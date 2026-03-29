@@ -2,8 +2,20 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧚 Изотоник Светофорчика — Эликсир Феи Чистоты</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f0c29">
+    <meta name="description" content="Калькулятор изотоника для Феи Чистоты">
+
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧚‍♀️</text></svg>">
+
+    <title>🧚 Изотоник Светофорчика</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Bad+Script&display=swap');
 
@@ -13,13 +25,35 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg-primary: #0f0c29;
+            --bg-secondary: #302b63;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --accent: #a78bfa;
+            --accent-bright: #c084fc;
+            --text-primary: #e0e7ff;
+            --text-secondary: #a5b4fc;
+            --text-muted: #7c83db;
+            --border: rgba(167, 139, 250, 0.2);
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
         body {
             font-family: 'Comfortaa', cursive;
             min-height: 100vh;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            color: #e0e0ff;
+            min-height: 100dvh;
+            background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary), #24243e);
+            color: var(--text-primary);
             overflow-x: hidden;
             position: relative;
+            padding-top: var(--safe-top);
+            padding-bottom: var(--safe-bottom);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        body.tg-theme {
+            background: var(--tg-theme-bg-color, linear-gradient(135deg, #0f0c29, #302b63, #24243e));
         }
 
         /* === Магические частицы === */
@@ -35,7 +69,7 @@
         .sparkle {
             position: absolute;
             width: 6px; height: 6px;
-            background: radial-gradient(circle, #fff, #a78bfa);
+            background: radial-gradient(circle, #fff, var(--accent));
             border-radius: 50%;
             animation: sparkleFloat linear infinite;
             opacity: 0;
@@ -48,19 +82,18 @@
             100% { opacity: 0; transform: translateY(-10vh) scale(1); }
         }
 
-        /* === Пузырьки === */
         .bubble {
             position: absolute;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, rgba(167, 139, 250, 0.3), rgba(59, 130, 246, 0.1));
-            border: 1px solid rgba(167, 139, 250, 0.2);
+            background: radial-gradient(circle at 30% 30%, rgba(167,139,250,0.3), rgba(59,130,246,0.1));
+            border: 1px solid rgba(167,139,250,0.15);
             animation: bubbleRise linear infinite;
         }
 
         @keyframes bubbleRise {
             0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
-            10% { opacity: 0.7; }
-            90% { opacity: 0.3; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.2; }
             100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
         }
 
@@ -70,14 +103,14 @@
             z-index: 1;
             max-width: 640px;
             margin: 0 auto;
-            padding: 20px 16px 40px;
+            padding: 16px 16px 100px;
         }
 
         /* === Заголовок === */
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            animation: fadeInDown 1s ease;
+            margin-bottom: 24px;
+            animation: fadeInDown 0.8s ease;
         }
 
         @keyframes fadeInDown {
@@ -86,21 +119,21 @@
         }
 
         .fairy-icon {
-            font-size: 80px;
+            font-size: 64px;
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             animation: fairyBounce 3s ease-in-out infinite;
-            filter: drop-shadow(0 0 20px rgba(167, 139, 250, 0.6));
+            filter: drop-shadow(0 0 20px rgba(167,139,250,0.5));
         }
 
         @keyframes fairyBounce {
             0%, 100% { transform: translateY(0) rotate(-3deg); }
-            50% { transform: translateY(-15px) rotate(3deg); }
+            50% { transform: translateY(-12px) rotate(3deg); }
         }
 
         .title {
             font-family: 'Bad Script', cursive;
-            font-size: 2.2em;
+            font-size: 2em;
             background: linear-gradient(135deg, #c084fc, #60a5fa, #34d399);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -109,72 +142,65 @@
         }
 
         .subtitle {
-            font-size: 0.85em;
-            color: #a78bfa;
-            margin-top: 8px;
+            font-size: 0.8em;
+            color: var(--accent);
+            margin-top: 6px;
             font-style: italic;
         }
 
         /* === Карточка === */
         .card {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg-card);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(167, 139, 250, 0.2);
-            border-radius: 24px;
-            padding: 28px 24px;
-            margin-bottom: 20px;
-            animation: fadeInUp 0.8s ease;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 22px 18px;
+            margin-bottom: 16px;
+            animation: fadeInUp 0.6s ease both;
             transition: transform 0.3s, box-shadow 0.3s;
         }
 
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 40px rgba(167, 139, 250, 0.15);
-        }
+        .card:nth-child(2) { animation-delay: 0.1s; }
+        .card:nth-child(3) { animation-delay: 0.15s; }
+        .card:nth-child(4) { animation-delay: 0.2s; }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .card-title {
-            font-size: 1.15em;
+            font-size: 1.05em;
             font-weight: 700;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             color: #c4b5fd;
         }
 
-        .card-title .icon {
-            font-size: 1.5em;
-        }
+        .card-title .icon { font-size: 1.4em; }
 
-        /* === Инпуты === */
-        .field {
-            margin-bottom: 20px;
-        }
+        /* === Поля === */
+        .field { margin-bottom: 16px; }
+        .field:last-child { margin-bottom: 0; }
 
         .field label {
             display: block;
-            font-size: 0.85em;
-            color: #a5b4fc;
+            font-size: 0.8em;
+            color: var(--text-secondary);
             margin-bottom: 8px;
             font-weight: 700;
         }
 
         .field label .hint {
             font-weight: 400;
-            color: #7c83db;
+            color: var(--text-muted);
             font-size: 0.9em;
         }
 
-        .slider-container {
-            position: relative;
-        }
-
+        /* === Слайдер === */
         input[type="range"] {
             -webkit-appearance: none;
             appearance: none;
@@ -184,52 +210,46 @@
             background: linear-gradient(90deg, #4f46e5, #7c3aed, #a78bfa);
             outline: none;
             cursor: pointer;
+            touch-action: none;
         }
 
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            appearance: none;
-            width: 28px; height: 28px;
+            width: 32px; height: 32px;
             border-radius: 50%;
             background: linear-gradient(135deg, #c084fc, #818cf8);
             border: 3px solid #e0e7ff;
-            box-shadow: 0 0 15px rgba(167, 139, 250, 0.5);
+            box-shadow: 0 0 15px rgba(167,139,250,0.5);
             cursor: grab;
-            transition: transform 0.2s;
-        }
-
-        input[type="range"]::-webkit-slider-thumb:active {
-            cursor: grabbing;
-            transform: scale(1.2);
         }
 
         input[type="range"]::-moz-range-thumb {
-            width: 28px; height: 28px;
+            width: 32px; height: 32px;
             border-radius: 50%;
             background: linear-gradient(135deg, #c084fc, #818cf8);
             border: 3px solid #e0e7ff;
-            box-shadow: 0 0 15px rgba(167, 139, 250, 0.5);
+            box-shadow: 0 0 15px rgba(167,139,250,0.5);
             cursor: grab;
         }
 
         .slider-value {
             text-align: center;
-            font-size: 1.6em;
+            font-size: 1.5em;
             font-weight: 700;
-            color: #e0e7ff;
+            color: var(--text-primary);
             margin-top: 8px;
         }
 
         .slider-value .unit {
             font-size: 0.5em;
-            color: #a78bfa;
+            color: var(--accent);
         }
 
         .slider-labels {
             display: flex;
             justify-content: space-between;
-            font-size: 0.7em;
-            color: #7c83db;
+            font-size: 0.65em;
+            color: var(--text-muted);
             margin-top: 4px;
         }
 
@@ -237,58 +257,58 @@
         .sweat-selector {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            gap: 8px;
         }
 
         .sweat-option {
-            background: rgba(255, 255, 255, 0.03);
-            border: 2px solid rgba(167, 139, 250, 0.15);
-            border-radius: 16px;
-            padding: 14px 10px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid rgba(167,139,250,0.12);
+            border-radius: 14px;
+            padding: 12px 8px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.25s;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .sweat-option:hover {
-            background: rgba(167, 139, 250, 0.1);
-            border-color: rgba(167, 139, 250, 0.3);
+        .sweat-option:active {
+            transform: scale(0.96);
         }
 
         .sweat-option.active {
-            background: rgba(167, 139, 250, 0.15);
-            border-color: #a78bfa;
-            box-shadow: 0 0 20px rgba(167, 139, 250, 0.2);
+            background: rgba(167,139,250,0.15);
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(167,139,250,0.15);
         }
 
         .sweat-option .emoji {
-            font-size: 2em;
+            font-size: 1.8em;
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .sweat-option .label {
-            font-size: 0.75em;
+            font-size: 0.72em;
             font-weight: 700;
             color: #c4b5fd;
         }
 
         .sweat-option .desc {
-            font-size: 0.65em;
-            color: #7c83db;
-            margin-top: 3px;
+            font-size: 0.6em;
+            color: var(--text-muted);
+            margin-top: 2px;
         }
 
-        /* === Кнопка === */
+        /* === Кнопка расчёта === */
         .btn-calc {
             display: block;
             width: 100%;
-            padding: 18px;
+            padding: 16px;
             border: none;
             border-radius: 16px;
             font-family: 'Comfortaa', cursive;
-            font-size: 1.1em;
+            font-size: 1.05em;
             font-weight: 700;
             color: white;
             background: linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6);
@@ -296,7 +316,7 @@
             transition: all 0.3s;
             position: relative;
             overflow: hidden;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            -webkit-tap-highlight-color: transparent;
         }
 
         .btn-calc::before {
@@ -308,131 +328,210 @@
             transition: left 0.5s;
         }
 
-        .btn-calc:hover::before {
-            left: 100%;
-        }
-
-        .btn-calc:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(124, 58, 237, 0.4);
-        }
+        .btn-calc:hover::before { left: 100%; }
 
         .btn-calc:active {
-            transform: translateY(0);
+            transform: scale(0.97);
         }
+
+        /* В Telegram скрываем кнопку — используем MainButton */
+        body.tg-mode .btn-calc { display: none; }
 
         /* === Результат === */
         .result-card {
             display: none;
-            background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(59, 130, 246, 0.1));
-            border: 1px solid rgba(167, 139, 250, 0.3);
-            animation: resultPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(59,130,246,0.08));
+            border: 1px solid rgba(167,139,250,0.25);
         }
 
         .result-card.visible {
             display: block;
+            animation: resultPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         @keyframes resultPop {
-            from { opacity: 0; transform: scale(0.8) translateY(20px); }
+            from { opacity: 0; transform: scale(0.9) translateY(15px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         .recipe-title {
             text-align: center;
             font-family: 'Bad Script', cursive;
-            font-size: 1.5em;
-            color: #c084fc;
-            margin-bottom: 20px;
+            font-size: 1.4em;
+            color: var(--accent-bright);
+            margin-bottom: 16px;
         }
 
+        /* === Бутылка === */
+        .bottle-visual {
+            display: flex;
+            justify-content: center;
+            margin: 16px 0;
+        }
+
+        .bottle { width: 70px; height: 140px; position: relative; }
+
+        .bottle-cap {
+            width: 32px; height: 10px;
+            background: linear-gradient(135deg, #7c3aed, #6366f1);
+            margin: 0 auto;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .bottle-neck {
+            width: 26px; height: 20px;
+            background: rgba(167,139,250,0.25);
+            border: 2px solid rgba(167,139,250,0.35);
+            border-bottom: none;
+            margin: 0 auto;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .bottle-body {
+            width: 62px; height: 100px;
+            background: rgba(167,139,250,0.08);
+            border: 2px solid rgba(167,139,250,0.25);
+            border-radius: 6px 6px 14px 14px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bottle-liquid {
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%;
+            background: linear-gradient(180deg, rgba(96,165,250,0.4), rgba(52,211,153,0.5));
+            border-radius: 0 0 12px 12px;
+            transition: height 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .bottle-liquid::before {
+            content: '';
+            position: absolute;
+            top: -3px; left: 0;
+            width: 100%; height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            animation: wave 2s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(1.8); }
+        }
+
+        /* === Ингредиенты === */
         .ingredient {
             display: flex;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(167, 139, 250, 0.1);
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(167,139,250,0.08);
         }
 
-        .ingredient:last-of-type {
-            border-bottom: none;
-        }
+        .ingredient:last-of-type { border-bottom: none; }
 
         .ingredient .ing-icon {
-            font-size: 1.8em;
-            width: 50px;
+            font-size: 1.6em;
+            width: 44px;
             text-align: center;
             flex-shrink: 0;
         }
 
-        .ingredient .ing-info {
-            flex: 1;
-        }
+        .ingredient .ing-info { flex: 1; }
 
         .ingredient .ing-name {
             font-weight: 700;
-            font-size: 0.9em;
-            color: #e0e7ff;
+            font-size: 0.85em;
+            color: var(--text-primary);
         }
 
         .ingredient .ing-detail {
-            font-size: 0.72em;
-            color: #7c83db;
+            font-size: 0.68em;
+            color: var(--text-muted);
             margin-top: 2px;
         }
 
         .ingredient .ing-amount {
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: 700;
-            color: #a78bfa;
+            color: var(--accent);
             text-align: right;
-            min-width: 80px;
+            min-width: 70px;
         }
 
-        .ingredient .ing-amount .ing-unit {
-            font-size: 0.6em;
-            color: #7c83db;
+        .ingredient .ing-unit {
+            font-size: 0.55em;
+            color: var(--text-muted);
             font-weight: 400;
         }
 
         /* === Мотивашка === */
         .motivation {
-            margin-top: 20px;
-            background: rgba(52, 211, 153, 0.1);
-            border: 1px solid rgba(52, 211, 153, 0.2);
-            border-radius: 16px;
-            padding: 16px;
+            margin-top: 16px;
+            background: rgba(52,211,153,0.08);
+            border: 1px solid rgba(52,211,153,0.15);
+            border-radius: 14px;
+            padding: 14px;
             text-align: center;
-            font-size: 0.85em;
+            font-size: 0.8em;
             color: #6ee7b7;
             line-height: 1.6;
         }
 
         .motivation .mot-emoji {
-            font-size: 1.5em;
+            font-size: 1.4em;
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
+        }
+
+        /* === Кнопка «Поделиться» === */
+        .share-section {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-share {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-secondary);
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.78em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-share:active {
+            transform: scale(0.96);
+            background: rgba(167,139,250,0.15);
         }
 
         /* === Советы === */
         .tips {
-            margin-top: 10px;
-            padding: 16px;
-            background: rgba(251, 191, 36, 0.05);
-            border: 1px solid rgba(251, 191, 36, 0.15);
-            border-radius: 16px;
+            margin-top: 12px;
+            padding: 14px;
+            background: rgba(251,191,36,0.04);
+            border: 1px solid rgba(251,191,36,0.12);
+            border-radius: 14px;
         }
 
         .tips-title {
-            font-size: 0.9em;
+            font-size: 0.85em;
             font-weight: 700;
             color: #fbbf24;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .tip-item {
-            font-size: 0.75em;
+            font-size: 0.72em;
             color: #d4b896;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
             padding-left: 20px;
             position: relative;
             line-height: 1.5;
@@ -442,22 +541,16 @@
             content: '✨';
             position: absolute;
             left: 0;
-            top: 0;
         }
 
         /* === Футер === */
         .footer {
             text-align: center;
-            margin-top: 40px;
-            padding: 20px;
-            font-size: 0.7em;
+            margin-top: 30px;
+            padding: 16px;
+            font-size: 0.65em;
             color: #4c4f8a;
             line-height: 1.8;
-        }
-
-        .footer a {
-            color: #7c83db;
-            text-decoration: none;
         }
 
         .footer .heart {
@@ -471,142 +564,114 @@
             50% { transform: scale(1.2); }
         }
 
-        /* === Бутылочка-визуал === */
-        .bottle-visual {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-        }
-
-        .bottle {
-            width: 80px;
-            height: 160px;
-            position: relative;
-        }
-
-        .bottle-neck {
-            width: 30px; height: 25px;
-            background: rgba(167, 139, 250, 0.3);
-            border: 2px solid rgba(167, 139, 250, 0.4);
-            border-bottom: none;
-            margin: 0 auto;
-            border-radius: 6px 6px 0 0;
-        }
-
-        .bottle-cap {
-            width: 36px; height: 12px;
-            background: linear-gradient(135deg, #7c3aed, #6366f1);
-            margin: 0 auto;
-            border-radius: 4px 4px 0 0;
-            position: relative;
-            top: -2px;
-        }
-
-        .bottle-body {
-            width: 70px; height: 110px;
-            background: rgba(167, 139, 250, 0.1);
-            border: 2px solid rgba(167, 139, 250, 0.3);
-            border-radius: 8px 8px 16px 16px;
-            margin: 0 auto;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .bottle-liquid {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: linear-gradient(180deg, rgba(96, 165, 250, 0.4), rgba(52, 211, 153, 0.5));
-            border-radius: 0 0 14px 14px;
-            transition: height 1s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .bottle-liquid::before {
-            content: '';
-            position: absolute;
-            top: -4px; left: 0;
-            width: 100%; height: 8px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            animation: liquidWave 2s ease-in-out infinite;
-        }
-
-        @keyframes liquidWave {
-            0%, 100% { transform: scaleY(1); }
-            50% { transform: scaleY(1.5); }
-        }
-
-        /* === Адаптив === */
-        @media (max-width: 400px) {
-            .title { font-size: 1.7em; }
-            .card { padding: 20px 16px; }
-            .sweat-selector { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            .sweat-option { padding: 10px 6px; }
-            .sweat-option .emoji { font-size: 1.5em; }
-        }
-
         /* === Тост === */
         .toast {
             position: fixed;
-            bottom: 30px;
+            bottom: 90px;
             left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: rgba(124, 58, 237, 0.9);
+            transform: translateX(-50%) translateY(80px);
+            background: rgba(124,58,237,0.92);
             backdrop-filter: blur(10px);
             color: white;
-            padding: 14px 24px;
-            border-radius: 14px;
-            font-size: 0.85em;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.8em;
             font-family: 'Comfortaa', cursive;
             z-index: 100;
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             text-align: center;
-            max-width: 90%;
+            max-width: 88%;
+            white-space: nowrap;
         }
 
         .toast.show {
             transform: translateX(-50%) translateY(0);
         }
+
+        /* === Режим установки PWA === */
+        .install-prompt {
+            display: none;
+            background: rgba(167,139,250,0.1);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 16px;
+            text-align: center;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .install-prompt.visible { display: block; }
+
+        .install-prompt p {
+            font-size: 0.78em;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .btn-install {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #7c3aed, #6366f1);
+            color: white;
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.82em;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-dismiss {
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.75em;
+            cursor: pointer;
+            margin-left: 8px;
+        }
     </style>
 </head>
 <body>
 
-<!-- Магические частицы -->
 <div class="sparkles" id="sparkles"></div>
 
 <div class="container">
 
-    <!-- Заголовок -->
     <header class="header">
         <span class="fairy-icon">🧚‍♀️</span>
         <h1 class="title">Изотоник Светофорчика</h1>
         <p class="subtitle">Волшебный эликсир для Феи Чистоты ✨🧹</p>
     </header>
 
+    <!-- PWA install prompt -->
+    <div class="install-prompt" id="installPrompt">
+        <p>📲 Хочешь иконку на экране? Установи как приложение!</p>
+        <button class="btn-install" id="btnInstall">Установить</button>
+        <button class="btn-dismiss" id="btnDismiss">Не сейчас</button>
+    </div>
+
     <!-- Объём воды -->
-    <div class="card" style="animation-delay: 0.1s">
+    <div class="card">
         <div class="card-title">
             <span class="icon">💧</span>
             Сколько волшебной воды?
         </div>
         <div class="field">
-            <label>Объём <span class="hint">(тяни ползунок, как швабру)</span></label>
-            <div class="slider-container">
-                <input type="range" id="waterAmount" min="250" max="3000" value="1000" step="50">
-                <div class="slider-value">
-                    <span id="waterDisplay">1000</span> <span class="unit">мл</span>
-                </div>
-                <div class="slider-labels">
-                    <span>🥤 стаканчик</span>
-                    <span>🪣 ведёрко</span>
-                </div>
+            <label>Объём <span class="hint">(тяни, как швабру по полу)</span></label>
+            <input type="range" id="waterAmount" min="250" max="3000" value="1000" step="50">
+            <div class="slider-value">
+                <span id="waterDisplay">1000</span> <span class="unit">мл</span>
+            </div>
+            <div class="slider-labels">
+                <span>🥤 стаканчик</span>
+                <span>🪣 ведёрко</span>
             </div>
         </div>
     </div>
 
     <!-- Уровень потения -->
-    <div class="card" style="animation-delay: 0.2s">
+    <div class="card">
         <div class="card-title">
             <span class="icon">💦</span>
             Уровень магического потения
@@ -625,7 +690,7 @@
             <div class="sweat-option" data-level="3" onclick="selectSweat(this)">
                 <span class="emoji">🔥</span>
                 <div class="label">Мощный</div>
-                <div class="desc">Сражение с пылью</div>
+                <div class="desc">Битва с пылью</div>
             </div>
             <div class="sweat-option" data-level="4" onclick="selectSweat(this)">
                 <span class="emoji">🌋</span>
@@ -636,27 +701,25 @@
     </div>
 
     <!-- Температура -->
-    <div class="card" style="animation-delay: 0.3s">
+    <div class="card">
         <div class="card-title">
             <span class="icon">🌡️</span>
-            Температура в подземелье
+            Температура на объекте
         </div>
         <div class="field">
-            <label>Жара на рабочем месте <span class="hint">(не кондиционер, а реальность)</span></label>
-            <div class="slider-container">
-                <input type="range" id="temperature" min="15" max="40" value="25" step="1">
-                <div class="slider-value">
-                    <span id="tempDisplay">25</span> <span class="unit">°C</span>
-                </div>
-                <div class="slider-labels">
-                    <span>🧊 морозилка</span>
-                    <span>🏜️ Сахара</span>
-                </div>
+            <label>Жара <span class="hint">(не кондиционер, а реальность)</span></label>
+            <input type="range" id="temperature" min="15" max="40" value="25" step="1">
+            <div class="slider-value">
+                <span id="tempDisplay">25</span> <span class="unit">°C</span>
+            </div>
+            <div class="slider-labels">
+                <span>🧊 морозилка</span>
+                <span>🏜️ Сахара</span>
             </div>
         </div>
     </div>
 
-    <!-- Кнопка -->
+    <!-- Кнопка (скрыта в TG — там MainButton) -->
     <button class="btn-calc" onclick="calculate()">
         🪄 Сварить эликсир!
     </button>
@@ -675,63 +738,108 @@
             </div>
         </div>
 
-        <div id="ingredients">
-            <!-- Сюда вставятся ингредиенты -->
-        </div>
+        <div id="ingredients"></div>
 
-        <div class="motivation" id="motivation">
-            <!-- Мотивашка -->
+        <div class="motivation" id="motivation"></div>
+
+        <div class="share-section">
+            <button class="btn-share" onclick="copyRecipe()">📋 Скопировать</button>
+            <button class="btn-share" onclick="shareRecipe()">📤 Поделиться</button>
         </div>
 
         <div class="tips">
             <div class="tips-title">💡 Советы от Феи Гидратации:</div>
-            <div class="tip-item">Пей маленькими глотками каждые 15–20 минут, а не залпом как зелье</div>
-            <div class="tip-item">Готовый изотоник хранится в холодильнике до 24 часов — потом теряет магию</div>
+            <div class="tip-item">Пей маленькими глотками каждые 15–20 мин, не залпом</div>
+            <div class="tip-item">Хранится в холодильнике до 24ч — потом теряет магию</div>
             <div class="tip-item">Мёд вместо сахара = +10 к волшебству (но не в кипяток!)</div>
-            <div class="tip-item">Лимон можно заменить апельсином или лаймом — на вкус феи</div>
+            <div class="tip-item">Лимон → апельсин или лайм — на вкус феи</div>
             <div class="tip-item">Щепотка соды убирает кислинку и добавляет электролитов</div>
         </div>
     </div>
 
-    <!-- Футер -->
     <div class="footer">
         Сделано с <span class="heart">♥</span> для Светы Светофорчика<br>
-        Самой волшебной Феи Чистоты во вселенной 🧚‍♀️✨<br>
+        Самой волшебной Феи Чистоты 🧚‍♀️✨<br>
         <br>
-        <span style="font-size:0.9em; color: #3d4070;">Помни: даже магия бессильна без воды 💧</span>
+        <span style="font-size:0.9em; color:#3d4070">Даже магия бессильна без воды 💧</span>
     </div>
 </div>
 
-<!-- Тост -->
 <div class="toast" id="toast"></div>
 
 <script>
-    // === Генерация частиц ===
-    function createSparkles() {
-        const container = document.getElementById('sparkles');
-        for (let i = 0; i < 30; i++) {
-            const sparkle = document.createElement('div');
-            sparkle.classList.add('sparkle');
-            sparkle.style.left = Math.random() * 100 + '%';
-            sparkle.style.animationDuration = (5 + Math.random() * 10) + 's';
-            sparkle.style.animationDelay = Math.random() * 10 + 's';
-            sparkle.style.width = sparkle.style.height = (3 + Math.random() * 5) + 'px';
-            container.appendChild(sparkle);
+    // =============================================
+    //  TELEGRAM WEB APP INTEGRATION
+    // =============================================
+    const tg = window.Telegram?.WebApp;
+    const isTelegram = tg && tg.initData && tg.initData.length > 0;
+
+    if (isTelegram) {
+        tg.ready();
+        tg.expand();
+        document.body.classList.add('tg-mode', 'tg-theme');
+
+        // Тема Telegram
+        if (tg.themeParams?.bg_color) {
+            document.body.style.background = tg.themeParams.bg_color;
         }
-        // Пузырьки
-        for (let i = 0; i < 8; i++) {
-            const bubble = document.createElement('div');
-            bubble.classList.add('bubble');
-            bubble.style.left = Math.random() * 100 + '%';
-            bubble.style.width = bubble.style.height = (20 + Math.random() * 40) + 'px';
-            bubble.style.animationDuration = (8 + Math.random() * 12) + 's';
-            bubble.style.animationDelay = Math.random() * 8 + 's';
-            container.appendChild(bubble);
+
+        // MainButton вместо HTML-кнопки
+        tg.MainButton.setText('🪄 Сварить эликсир!');
+        tg.MainButton.color = '#7c3aed';
+        tg.MainButton.textColor = '#ffffff';
+        tg.MainButton.show();
+        tg.MainButton.onClick(calculate);
+
+        // Haptic feedback при выборе
+        document.querySelectorAll('.sweat-option').forEach(el => {
+            el.addEventListener('click', () => {
+                tg.HapticFeedback?.selectionChanged();
+            });
+        });
+
+        // BackButton
+        tg.BackButton.onClick(() => {
+            const result = document.getElementById('resultCard');
+            if (result.classList.contains('visible')) {
+                result.classList.remove('visible');
+                result.style.display = 'none';
+            } else {
+                tg.close();
+            }
+        });
+    }
+
+    // =============================================
+    //  ЧАСТИЦЫ
+    // =============================================
+    function createSparkles() {
+        const c = document.getElementById('sparkles');
+        for (let i = 0; i < 25; i++) {
+            const s = document.createElement('div');
+            s.classList.add('sparkle');
+            s.style.left = Math.random() * 100 + '%';
+            s.style.animationDuration = (5 + Math.random() * 10) + 's';
+            s.style.animationDelay = Math.random() * 10 + 's';
+            s.style.width = s.style.height = (3 + Math.random() * 4) + 'px';
+            c.appendChild(s);
+        }
+        for (let i = 0; i < 6; i++) {
+            const b = document.createElement('div');
+            b.classList.add('bubble');
+            b.style.left = Math.random() * 100 + '%';
+            const size = (20 + Math.random() * 35) + 'px';
+            b.style.width = b.style.height = size;
+            b.style.animationDuration = (8 + Math.random() * 12) + 's';
+            b.style.animationDelay = Math.random() * 8 + 's';
+            c.appendChild(b);
         }
     }
     createSparkles();
 
-    // === Слайдеры ===
+    // =============================================
+    //  СЛАЙДЕРЫ
+    // =============================================
     const waterSlider = document.getElementById('waterAmount');
     const tempSlider = document.getElementById('temperature');
     const waterDisplay = document.getElementById('waterDisplay');
@@ -739,13 +847,16 @@
 
     waterSlider.addEventListener('input', () => {
         waterDisplay.textContent = waterSlider.value;
+        if (isTelegram) tg.HapticFeedback?.selectionChanged();
     });
 
     tempSlider.addEventListener('input', () => {
         tempDisplay.textContent = tempSlider.value;
     });
 
-    // === Выбор уровня пота ===
+    // =============================================
+    //  УРОВЕНЬ ПОТА
+    // =============================================
     let sweatLevel = 1;
 
     function selectSweat(el) {
@@ -754,30 +865,44 @@
         sweatLevel = parseInt(el.dataset.level);
     }
 
-    // === Расчёт ===
+    // =============================================
+    //  РАСЧЁТ
+    // =============================================
+    let lastRecipeText = '';
+
     function calculate() {
         const water = parseInt(waterSlider.value);
         const temp = parseInt(tempSlider.value);
         const litres = water / 1000;
 
-        // Коэффициент потения
-        const sweatMultiplier = [1, 1.2, 1.5, 1.8][sweatLevel - 1];
-        // Коэффициент жары (выше 25 — больше соли)
-        const heatMultiplier = temp > 25 ? 1 + (temp - 25) * 0.02 : 1;
-        const totalMult = sweatMultiplier * heatMultiplier;
+        const sweatMult = [1, 1.2, 1.5, 1.8][sweatLevel - 1];
+        const heatMult = temp > 25 ? 1 + (temp - 25) * 0.02 : 1;
+        const total = sweatMult * heatMult;
 
-        // Базовые пропорции на 1 литр
-        const salt = (1.5 * litres * totalMult).toFixed(1);        // грамм
-        const sugar = (25 * litres * totalMult).toFixed(0);         // грамм
-        const lemon = (30 * litres).toFixed(0);                     // мл (~ половинка лимона на литр)
-        const soda = (0.5 * litres * totalMult).toFixed(1);         // грамм
+        const salt = (1.5 * litres * total).toFixed(1);
+        const sugar = (25 * litres * total).toFixed(0);
+        const lemon = (30 * litres).toFixed(0);
+        const soda = (0.5 * litres * total).toFixed(1);
 
-        // Перевод в ложки для удобства
-        const saltTsp = (salt / 5).toFixed(1);    // ч.л. (5г = 1 ч.л. с горкой соли)
-        const sugarTbsp = (sugar / 10).toFixed(1); // ст.л. (10г ≈ 1 ст.л. сахара)
-        const sodaPinch = Math.round(soda / 0.5);  // щепоток
+        const saltTsp = (salt / 5).toFixed(1);
+        const sugarTbsp = (sugar / 10).toFixed(1);
+        const sodaPinch = Math.max(1, Math.round(soda / 0.5));
 
-        const ingredientsHTML = `
+        // Сохраняем для share
+        const sweatNames = ['лёгкий 🌸', 'средний 💪', 'мощный 🔥', 'БЕРСЕРК 🌋'];
+        lastRecipeText =
+`🧚‍♀️ Изотоник Светофорчика
+
+💧 Вода: ${water} мл
+🧂 Соль: ${salt} г (≈${saltTsp} ч.л.)
+🍬 Сахар: ${sugar} г (≈${sugarTbsp} ст.л.)
+🍋 Лимонный сок: ${lemon} мл
+🫧 Сода: ${soda} г (≈${sodaPinch} щеп.)
+
+📊 Режим: ${sweatNames[sweatLevel-1]}, ${temp}°C
+✨ Пей и будь непобедима!`;
+
+        document.getElementById('ingredients').innerHTML = `
             <div class="ingredient">
                 <div class="ing-icon">💧</div>
                 <div class="ing-info">
@@ -790,7 +915,7 @@
                 <div class="ing-icon">🧂</div>
                 <div class="ing-info">
                     <div class="ing-name">Соль</div>
-                    <div class="ing-detail">≈ ${saltTsp} ч.л. — как слезинка единорога</div>
+                    <div class="ing-detail">≈ ${saltTsp} ч.л. — слезинка единорога</div>
                 </div>
                 <div class="ing-amount">${salt} <span class="ing-unit">г</span></div>
             </div>
@@ -798,7 +923,7 @@
                 <div class="ing-icon">🍬</div>
                 <div class="ing-info">
                     <div class="ing-name">Сахар</div>
-                    <div class="ing-detail">≈ ${sugarTbsp} ст.л. — или мёд для +10 к магии</div>
+                    <div class="ing-detail">≈ ${sugarTbsp} ст.л. (или мёд для +10 магии)</div>
                 </div>
                 <div class="ing-amount">${sugar} <span class="ing-unit">г</span></div>
             </div>
@@ -806,7 +931,7 @@
                 <div class="ing-icon">🍋</div>
                 <div class="ing-info">
                     <div class="ing-name">Лимонный сок</div>
-                    <div class="ing-detail">Свежевыжатый, как настроение после смены</div>
+                    <div class="ing-detail">Свежий, как настроение после смены</div>
                 </div>
                 <div class="ing-amount">${lemon} <span class="ing-unit">мл</span></div>
             </div>
@@ -814,92 +939,151 @@
                 <div class="ing-icon">🫧</div>
                 <div class="ing-info">
                     <div class="ing-name">Сода</div>
-                    <div class="ing-detail">${sodaPinch} щеп. — по желанию, не путать с моющей!</div>
+                    <div class="ing-detail">${sodaPinch} щеп. — не путать с моющей!</div>
                 </div>
                 <div class="ing-amount">${soda} <span class="ing-unit">г</span></div>
-            </div>
-        `;
-
-        document.getElementById('ingredients').innerHTML = ingredientsHTML;
+            </div>`;
 
         // Мотивашка
-        const motivations = [
-            { emoji: '🧹✨', text: 'Пыль боится тебя, Света! А с этим эликсиром ты непобедима!' },
-            { emoji: '💪🧚‍♀️', text: 'Каждая капля — это +1 к силе Феи Чистоты! Пей и властвуй!' },
-            { emoji: '🌟💧', text: 'Ты не просто убираешь — ты создаёшь уют! Заслуживаешь лучший изотоник!' },
-            { emoji: '⚡🧹', text: 'Заряжена, увлажнена, опасна для грязи! Света, ты сила!' },
-            { emoji: '🦸‍♀️💦', text: 'Супергероям тоже нужна вода! А ты — супергерой чистоты!' },
-            { emoji: '🌈✨', text: 'После этого эликсира даже пол будет блестеть от зависти!' },
-            { emoji: '👑💧', text: 'Королева швабры и повелительница тряпки — прими свой эликсир!' },
-            { emoji: '🔮🧹', text: 'Древнее пророчество гласит: «Света выпьет изотоник и наведёт порядок во Вселенной»' },
+        const mots = [
+            { e: '🧹✨', t: 'Пыль боится тебя, Света! С эликсиром ты непобедима!' },
+            { e: '💪🧚‍♀️', t: 'Каждая капля — +1 к силе Феи Чистоты!' },
+            { e: '🌟💧', t: 'Ты создаёшь уют! Заслуживаешь лучший изотоник!' },
+            { e: '⚡🧹', t: 'Заряжена, увлажнена, опасна для грязи!' },
+            { e: '🦸‍♀️💦', t: 'Супергероям тоже нужна вода! А ты — супергерой!' },
+            { e: '🌈✨', t: 'После этого эликсира пол блестит от зависти!' },
+            { e: '👑💧', t: 'Королева швабры — прими свой эликсир!' },
+            { e: '🔮🧹', t: 'Пророчество: «Света выпьет и наведёт порядок во Вселенной»' },
         ];
-        const mot = motivations[Math.floor(Math.random() * motivations.length)];
-        document.getElementById('motivation').innerHTML = `
-            <span class="mot-emoji">${mot.emoji}</span>
-            ${mot.text}
-        `;
+        const m = mots[Math.floor(Math.random() * mots.length)];
+        document.getElementById('motivation').innerHTML =
+            `<span class="mot-emoji">${m.e}</span>${m.t}`;
 
-        // Показать карточку
+        // Показ результата
         const card = document.getElementById('resultCard');
         card.classList.remove('visible');
         card.style.display = 'none';
 
         setTimeout(() => {
             card.style.display = 'block';
-            // Пере-trigger анимации
             void card.offsetWidth;
             card.classList.add('visible');
 
-            // Бутылочка заполняется
             setTimeout(() => {
-                const fill = Math.min(90, 30 + (water / 3000) * 60);
-                document.getElementById('bottleLiquid').style.height = fill + '%';
-            }, 300);
+                document.getElementById('bottleLiquid').style.height =
+                    Math.min(90, 30 + (water / 3000) * 60) + '%';
+            }, 200);
 
-            // Скролл
             card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
 
-        // Тост
-        showToast(getRandomToast());
+            if (isTelegram) {
+                tg.HapticFeedback?.notificationOccurred('success');
+                tg.BackButton.show();
+            }
+        }, 80);
+
+        showToast(randomToast());
     }
 
-    // === Тосты ===
-    function getRandomToast() {
-        const toasts = [
+    // =============================================
+    //  ПОДЕЛИТЬСЯ / КОПИРОВАТЬ
+    // =============================================
+    function copyRecipe() {
+        navigator.clipboard?.writeText(lastRecipeText).then(() => {
+            showToast('📋 Рецепт скопирован!');
+            if (isTelegram) tg.HapticFeedback?.notificationOccurred('success');
+        }).catch(() => {
+            // Fallback
+            const ta = document.createElement('textarea');
+            ta.value = lastRecipeText;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast('📋 Скопировано!');
+        });
+    }
+
+    function shareRecipe() {
+        if (isTelegram) {
+            // Через Telegram
+            tg.switchInlineQuery?.(lastRecipeText, ['users', 'groups']);
+            // Если не поддерживается — через ссылку
+            if (!tg.switchInlineQuery) {
+                const url = `https://t.me/share/url?text=${encodeURIComponent(lastRecipeText)}`;
+                tg.openTelegramLink(url);
+            }
+            return;
+        }
+
+        // Web Share API
+        if (navigator.share) {
+            navigator.share({
+                title: '🧚‍♀️ Изотоник Светофорчика',
+                text: lastRecipeText,
+            }).catch(() => {});
+        } else {
+            copyRecipe();
+        }
+    }
+
+    // =============================================
+    //  ТОСТЫ
+    // =============================================
+    function randomToast() {
+        const t = [
             '🧚‍♀️ Эликсир готов! Грязь задрожала!',
             '✨ Зелье сварено! Пей на здоровье!',
             '🪄 Абра-кадабра-изотонибра!',
             '💧 Водный баланс — баланс силы!',
-            '🧹 Швабра одобряет этот рецепт!',
+            '🧹 Швабра одобряет рецепт!',
             '⚡ Энергия феи восполнена!',
         ];
-        return toasts[Math.floor(Math.random() * toasts.length)];
+        return t[Math.floor(Math.random() * t.length)];
     }
 
+    let toastTimer;
     function showToast(text) {
-        const toast = document.getElementById('toast');
-        toast.textContent = text;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3000);
+        const el = document.getElementById('toast');
+        el.textContent = text;
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
     }
 
-    // === Пасхалка: конами-код для Светы ===
-    let konamiProgress = 0;
-    const konamiCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // ↑↑↓↓←→←→BA
+    // =============================================
+    //  PWA INSTALL
+    // =============================================
+    let deferredPrompt;
 
-    document.addEventListener('keydown', (e) => {
-        if (e.keyCode === konamiCode[konamiProgress]) {
-            konamiProgress++;
-            if (konamiProgress === konamiCode.length) {
-                konamiProgress = 0;
-                document.body.style.background = 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)';
-                showToast('🦄 Режим Единорога активирован! Света, ты легенда!');
-            }
-        } else {
-            konamiProgress = 0;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (!isTelegram) {
+            document.getElementById('installPrompt').classList.add('visible');
         }
     });
+
+    document.getElementById('btnInstall')?.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') showToast('🎉 Установлено!');
+            deferredPrompt = null;
+            document.getElementById('installPrompt').classList.remove('visible');
+        }
+    });
+
+    document.getElementById('btnDismiss')?.addEventListener('click', () => {
+        document.getElementById('installPrompt').classList.remove('visible');
+    });
+
+    // =============================================
+    //  SERVICE WORKER (для PWA)
+    // =============================================
+    if ('serviceWorker' in navigator && !isTelegram) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
 </script>
 
 </body>
